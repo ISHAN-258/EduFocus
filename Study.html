@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Study Session | EduFocus AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #020617;
+            color: #f8fafc;
+        }
+
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Simulated Camera HUD */
+        .camera-container {
+            position: relative;
+            background: linear-gradient(45deg, #0f172a, #1e293b);
+            border: 2px solid #1e293b;
+            overflow: hidden;
+            border-radius: 2rem;
+        }
+
+        .scan-line {
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            background: rgba(56, 189, 248, 0.5);
+            box-shadow: 0 0 15px #38bdf8;
+            top: 0;
+            z-index: 10;
+            animation: scan 4s linear infinite;
+        }
+
+        @keyframes scan {
+            0% { top: 0%; }
+            100% { top: 100%; }
+        }
+
+        .hud-corner {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(56, 189, 248, 0.5);
+        }
+
+        .timer-glow {
+            text-shadow: 0 0 20px rgba(56, 189, 248, 0.3);
+        }
+
+        .warning-overlay {
+            display: none;
+            position: absolute;
+            inset: 0;
+            background: rgba(153, 27, 27, 0.4);
+            backdrop-filter: blur(4px);
+            z-index: 50;
+            justify-content: center;
+            align-items: center;
+            border-radius: 2rem;
+        }
+
+        .pulse-red {
+            animation: pulse-bg 1.5s infinite;
+        }
+
+        @keyframes pulse-bg {
+            0% { background: rgba(153, 27, 27, 0.4); }
+            50% { background: rgba(153, 27, 27, 0.7); }
+            100% { background: rgba(153, 27, 27, 0.4); }
+        }
+
+        .status-badge {
+            transition: all 0.3s ease;
+        }
+    </style>
+</head>
+<body class="antialiased min-h-screen">
+
+    <!-- 🧭 Navigation (Consistent with Home) -->
+    <nav class="w-full z-50 border-b border-white/5 bg-slate-950/50 backdrop-blur-md">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 bg-sky-500 rounded-lg flex items-center justify-center">
+                    <i data-lucide="brain-circuit" class="text-white w-5 h-5"></i>
+                </div>
+                <span class="text-xl font-bold tracking-tight">EduFocus</span>
+            </div>
+            
+            <div class="hidden md:flex items-center gap-8">
+                <a href="index.html" class="hover:text-sky-400 transition-colors">Home</a>
+                <a href="study.html" class="text-sky-400 font-semibold">Study</a>
+                <a href="planner.html" class="hover:text-sky-400 transition-colors">Planner</a>
+                <a href="analytics.html" class="hover:text-sky-400 transition-colors">Analytics</a>
+                <a href="profile.html" class="hover:text-sky-400 transition-colors">Profile</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-6 py-12">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            
+            <!-- 🎥 AI Tracking Section (Left) -->
+            <div class="lg:col-span-8 space-y-6">
+                <div class="camera-container aspect-video relative group">
+                    <!-- HUD Elements -->
+                    <div class="scan-line"></div>
+                    <div class="hud-corner top-6 left-6 border-r-0 border-b-0"></div>
+                    <div class="hud-corner top-6 right-6 border-l-0 border-b-0"></div>
+                    <div class="hud-corner bottom-6 left-6 border-r-0 border-t-0"></div>
+                    <div class="hud-corner bottom-6 right-6 border-l-0 border-t-0"></div>
+
+                    <!-- AI Visual Indicators -->
+                    <div class="absolute top-8 left-10 z-20 flex gap-4">
+                        <div class="glass-panel px-4 py-2 rounded-xl border border-sky-500/30 flex items-center gap-2">
+                            <span class="w-2 h-2 bg-sky-500 rounded-full animate-pulse"></span>
+                            <span class="text-[10px] font-bold uppercase tracking-widest text-sky-400">System Live</span>
+                        </div>
+                    </div>
+
+                    <!-- Warning Overlay -->
+                    <div id="warningOverlay" class="warning-overlay pulse-red">
+                        <div class="text-center">
+                            <div id="warningIcon" class="mb-4 flex justify-center text-white">
+                                <!-- Dynamic Icon -->
+                            </div>
+                            <h3 id="warningTitle" class="text-3xl font-black uppercase tracking-tighter mb-2">Posture Alert</h3>
+                            <p id="warningDesc" class="text-lg font-medium opacity-90">Sit straight to maintain focus.</p>
+                        </div>
+                    </div>
+
+                    <!-- Simulated Video Background -->
+                    <div class="w-full h-full flex flex-col items-center justify-center text-slate-700">
+                        <i data-lucide="video-off" class="w-20 h-20 mb-4 opacity-20"></i>
+                        <p class="text-sm font-medium opacity-40">AI SENSOR STREAM ACTIVE</p>
+                    </div>
+                </div>
+
+                <!-- Session Stats Bar -->
+                <div class="grid grid-cols-3 gap-4">
+                    <div class="glass-panel p-6 rounded-[1.5rem] text-center">
+                        <p class="text-slate-500 text-xs font-bold uppercase tracking-widest mb-2">Focus Level</p>
+                        <p id="focusDisplay" class="text-xl font-bold text-sky-400">--</p>
+                    </div>
+                    <div class="glass-panel p-6 rounded-[1.5rem] text-center">
+                        <p class="text-slate-500 text-xs font-bold uppercase tracking-widest mb-2">Posture</p>
+                        <p id="postureDisplay" class="text-xl font-bold text-emerald-400">--</p>
+                    </div>
+                    <div class="glass-panel p-6 rounded-[1.5rem] text-center">
+                        <p class="text-slate-500 text-xs font-bold uppercase tracking-widest mb-2">Distractions</p>
+                        <p id="distDisplay" class="text-xl font-bold text-rose-400">0</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ⏱️ Controls & Timer (Right) -->
+            <div class="lg:col-span-4 space-y-6">
+                <div class="glass-panel p-8 rounded-[2rem] border-sky-500/10">
+                    <div class="text-center mb-8">
+                        <h2 id="timerDisplay" class="text-7xl font-black tracking-tighter timer-glow tabular-nums">25:00</h2>
+                        <p class="text-slate-500 text-xs font-bold uppercase tracking-[0.3em] mt-2">Deep Work Flow</p>
+                    </div>
+
+                    <div class="space-y-4">
+                        <button id="startBtn" onclick="startSession()" class="w-full py-4 bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold rounded-2xl transition-all flex items-center justify-center gap-2">
+                            <i data-lucide="play" class="w-5 h-5 fill-current"></i> Start Study Flow
+                        </button>
+                        <button id="stopBtn" onclick="stopSession()" class="hidden w-full py-4 bg-slate-800 hover:bg-rose-900/40 text-white font-bold rounded-2xl transition-all flex items-center justify-center gap-2 border border-slate-700">
+                            <i data-lucide="square" class="w-5 h-5 fill-current text-rose-500"></i> End Session
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Live Insight Card -->
+                <div class="glass-panel p-8 rounded-[2rem]">
+                    <h4 class="text-sm font-bold uppercase tracking-widest text-slate-400 mb-6">AI Insights</h4>
+                    <div class="space-y-6">
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm">Attention Span</span>
+                            <span class="text-xs font-bold text-sky-400">High</span>
+                        </div>
+                        <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                            <div class="bg-sky-500 h-full" style="width: 85%"></div>
+                        </div>
+                        
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm">Hydration Need</span>
+                            <span class="text-xs font-bold text-amber-400">Medium</span>
+                        </div>
+                        <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                            <div class="bg-amber-500 h-full" style="width: 40%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 📊 Session Summary Modal -->
+    <div id="summaryModal" class="fixed inset-0 z-[100] bg-slate-950/90 backdrop-blur-xl hidden items-center justify-center p-6">
+        <div class="glass-panel max-w-md w-full p-10 rounded-[2.5rem] border border-sky-500/20 text-center">
+            <div class="w-20 h-20 bg-emerald-500/10 text-emerald-500 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                <i data-lucide="award" class="w-10 h-10"></i>
+            </div>
+            <h2 class="text-3xl font-bold mb-2">Great Session!</h2>
+            <p class="text-slate-400 mb-8">Your focus consistency is improving. Here's your report:</p>
+            
+            <div class="grid grid-cols-2 gap-4 mb-8 text-left">
+                <div class="bg-slate-900/50 p-4 rounded-2xl">
+                    <p class="text-[10px] uppercase font-bold text-slate-500">Focus Score</p>
+                    <p class="text-xl font-bold text-sky-400">92%</p>
+                </div>
+                <div class="bg-slate-900/50 p-4 rounded-2xl">
+                    <p class="text-[10px] uppercase font-bold text-slate-500">Posture</p>
+                    <p class="text-xl font-bold text-emerald-400">Excellent</p>
+                </div>
+            </div>
+
+            <button onclick="closeSummary()" class="w-full py-4 bg-sky-500 text-slate-950 font-bold rounded-2xl hover:bg-sky-400 transition-all">
+                Close Report
+            </button>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        let state = {
+            isRunning: false,
+            timer: null,
+            seconds: 1500, // 25:00
+            distractions: 0,
+            aiInterval: null
+        };
+
+        const timerDisplay = document.getElementById('timerDisplay');
+        const warningOverlay = document.getElementById('warningOverlay');
+
+        function startSession() {
+            state.isRunning = true;
+            document.getElementById('startBtn').classList.add('hidden');
+            document.getElementById('stopBtn').classList.remove('hidden');
+
+            state.timer = setInterval(() => {
+                state.seconds--;
+                updateTimer();
+                if (state.seconds <= 0) stopSession();
+            }, 1000);
+
+            // Start AI Simulation Logic
+            state.aiInterval = setInterval(simulateAI, 4000);
+        }
+
+        function stopSession() {
+            clearInterval(state.timer);
+            clearInterval(state.aiInterval);
+            state.isRunning = false;
+            
+            // Show Modal
+            document.getElementById('summaryModal').style.display = 'flex';
+            gsap.from("#summaryModal > div", { scale: 0.9, opacity: 0, duration: 0.4, ease: "back.out" });
+        }
+
+        function closeSummary() {
+            document.getElementById('summaryModal').style.display = 'none';
+            document.getElementById('startBtn').classList.remove('hidden');
+            document.getElementById('stopBtn').classList.add('hidden');
+            state.seconds = 1500;
+            updateTimer();
+        }
+
+        function updateTimer() {
+            const m = Math.floor(state.seconds / 60);
+            const s = state.seconds % 60;
+            timerDisplay.innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        }
+
+        function simulateAI() {
+            const postures = ["Perfect", "Slouching", "Bent"];
+            const focusLevels = ["High", "Deep", "Average", "Low"];
+            
+            const p = postures[Math.floor(Math.random() * postures.length)];
+            const f = focusLevels[Math.floor(Math.random() * focusLevels.length)];
+            
+            document.getElementById('postureDisplay').innerText = p;
+            document.getElementById('focusDisplay').innerText = f;
+
+            // Trigger Warnings
+            if (p !== "Perfect") {
+                showWarning("Posture Alert", "Sit straight to maintain focus.", "accessibility");
+            } else if (Math.random() < 0.2) {
+                state.distractions++;
+                document.getElementById('distDisplay').innerText = state.distractions;
+                showWarning("Phone Detected!", "Keep your phone away, warrior.", "smartphone-off");
+            }
+        }
+
+        function showWarning(title, desc, iconName) {
+            document.getElementById('warningTitle').innerText = title;
+            document.getElementById('warningDesc').innerText = desc;
+            document.getElementById('warningIcon').innerHTML = `<i data-lucide="${iconName}" class="w-16 h-16"></i>`;
+            lucide.createIcons();
+
+            warningOverlay.style.display = 'flex';
+            gsap.fromTo(warningOverlay, { opacity: 0 }, { opacity: 1, duration: 0.3 });
+
+            setTimeout(() => {
+                gsap.to(warningOverlay, { opacity: 0, duration: 0.3, onComplete: () => {
+                    warningOverlay.style.display = 'none';
+                }});
+            }, 2500);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Study Planner | EduFocus AI</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- GSAP Animations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #020617;
+            color: #f8fafc;
+            min-height: screen;
+        }
+
+        .glass-card {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass-card:hover {
+            border-color: rgba(56, 189, 248, 0.2);
+        }
+
+        .task-done {
+            text-decoration: line-through;
+            color: #64748b;
+            opacity: 0.7;
+        }
+
+        .custom-checkbox {
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            border: 2px solid #1e293b;
+            border-radius: 8px;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s;
+        }
+
+        .custom-checkbox:checked {
+            background: #38bdf8;
+            border-color: #38bdf8;
+        }
+
+        .custom-checkbox:checked::after {
+            content: '✓';
+            position: absolute;
+            color: #020617;
+            font-weight: 900;
+            font-size: 14px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .input-focus:focus {
+            box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
+        }
+
+        /* Progress Bar Animation */
+        #progress-fill {
+            transition: width 0.6s cubic-bezier(0.65, 0, 0.35, 1);
+        }
+
+        .empty-state {
+            display: none;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- 🧭 Navigation (Consistent) -->
+    <nav class="w-full z-50 border-b border-white/5 bg-slate-950/50 backdrop-blur-md sticky top-0">
+        <div class="max-w-5xl mx-auto px-6 h-20 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 bg-sky-500 rounded-lg flex items-center justify-center">
+                    <i data-lucide="brain-circuit" class="text-white w-5 h-5"></i>
+                </div>
+                <span class="text-xl font-bold tracking-tight">EduFocus</span>
+            </div>
+            
+            <div class="hidden md:flex items-center gap-8">
+                <a href="index.html" class="hover:text-sky-400 transition-colors">Home</a>
+                <a href="study.html" class="hover:text-sky-400 transition-colors">Study</a>
+                <a href="planner.html" class="text-sky-400 font-semibold">Planner</a>
+                <a href="analytics.html" class="hover:text-sky-400 transition-colors">Analytics</a>
+                <a href="profile.html" class="hover:text-sky-400 transition-colors">Profile</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-3xl mx-auto px-6 py-12">
+        
+        <!-- Header Stats -->
+        <div class="mb-12">
+            <div class="flex justify-between items-end mb-4">
+                <div>
+                    <h1 class="text-4xl font-extrabold tracking-tight">Your Strategy 📅</h1>
+                    <p class="text-slate-400 mt-1">Organize your goals and stay consistent.</p>
+                </div>
+                <div class="text-right">
+                    <span id="progress-percent" class="text-2xl font-bold text-sky-400">0%</span>
+                    <p class="text-[10px] uppercase font-bold tracking-widest text-slate-500">Daily Completion</p>
+                </div>
+            </div>
+            <div class="w-full h-3 bg-slate-800/50 rounded-full overflow-hidden border border-white/5">
+                <div id="progress-fill" class="h-full bg-gradient-to-r from-sky-500 to-indigo-500 w-0"></div>
+            </div>
+        </div>
+
+        <!-- Add Task Form -->
+        <div class="glass-card p-6 rounded-[2rem] mb-10">
+            <div class="flex flex-col md:flex-row gap-4">
+                <div class="relative flex-1">
+                    <i data-lucide="plus-circle" class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 w-5 h-5"></i>
+                    <input type="text" id="taskInput" placeholder="What needs to be done?" 
+                           class="w-full bg-slate-900/50 border border-slate-700/50 rounded-2xl py-4 pl-12 pr-6 outline-none input-focus transition-all text-slate-200 placeholder:text-slate-600">
+                </div>
+                <button onclick="addTask()" class="bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold px-8 py-4 rounded-2xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-sky-500/20">
+                    Add Goal
+                </button>
+            </div>
+        </div>
+
+        <!-- Task List -->
+        <div id="taskList" class="space-y-4">
+            <!-- Tasks injected here -->
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="text-center py-20">
+            <div class="w-20 h-20 bg-slate-900 rounded-3xl flex items-center justify-center mx-auto mb-6 text-slate-700">
+                <i data-lucide="clipboard-list" class="w-10 h-10"></i>
+            </div>
+            <h3 class="text-xl font-bold text-slate-400">Nothing planned yet</h3>
+            <p class="text-slate-600">Start by adding your first study goal above.</p>
+        </div>
+
+    </main>
+
+    <!-- 🛠️ JavaScript Logic -->
+    <script>
+        lucide.createIcons();
+
+        let tasks = JSON.parse(localStorage.getItem("eduFocus_tasks")) || [
+            { text: "Complete Chemistry Lab Report", done: false, id: Date.now() },
+            { text: "Posture analysis on last session", done: true, id: Date.now() + 1 }
+        ];
+
+        function saveTasks() {
+            localStorage.setItem("eduFocus_tasks", JSON.stringify(tasks));
+            updateProgress();
+        }
+
+        function updateProgress() {
+            const total = tasks.length;
+            const completed = tasks.filter(t => t.done).length;
+            const percent = total === 0 ? 0 : Math.round((completed / total) * 100);
+            
+            document.getElementById('progress-fill').style.width = percent + '%';
+            document.getElementById('progress-percent').innerText = percent + '%';
+        }
+
+        function renderTasks() {
+            const list = document.getElementById("taskList");
+            const empty = document.getElementById("emptyState");
+            
+            if (tasks.length === 0) {
+                list.innerHTML = "";
+                empty.style.display = "block";
+                updateProgress();
+                return;
+            }
+
+            empty.style.display = "none";
+            list.innerHTML = "";
+
+            tasks.forEach((task, index) => {
+                const li = document.createElement("div");
+                li.className = "task-item glass-card p-5 rounded-[1.5rem] flex items-center justify-between group";
+                
+                li.innerHTML = `
+                    <div class="flex items-center gap-5">
+                        <input type="checkbox" class="custom-checkbox" ${task.done ? 'checked' : ''} onchange="toggleTask(${index})">
+                        <span class="font-medium text-slate-200 ${task.done ? 'task-done' : ''}">${task.text}</span>
+                    </div>
+
+                    <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button onclick="deleteTask(${index})" class="p-2 hover:bg-rose-500/10 hover:text-rose-500 rounded-lg transition-colors text-slate-500">
+                            <i data-lucide="trash-2" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                `;
+
+                list.appendChild(li);
+            });
+
+            lucide.createIcons();
+            updateProgress();
+        }
+
+        function addTask() {
+            const input = document.getElementById("taskInput");
+            const text = input.value.trim();
+
+            if (text === "") {
+                gsap.to(input, { x: 10, repeat: 5, yoyo: true, duration: 0.05 });
+                return;
+            }
+
+            const newTask = { text: text, done: false, id: Date.now() };
+            tasks.unshift(newTask);
+            input.value = "";
+
+            saveTasks();
+            renderTasks();
+
+            // GSAP Entrance Animation for new item
+            gsap.from(".task-item:first-child", {
+                y: -20,
+                opacity: 0,
+                duration: 0.4,
+                ease: "back.out"
+            });
+        }
+
+        function toggleTask(index) {
+            tasks[index].done = !tasks[index].done;
+            saveTasks();
+            renderTasks();
+        }
+
+        function deleteTask(index) {
+            const items = document.querySelectorAll('.task-item');
+            gsap.to(items[index], {
+                x: 100,
+                opacity: 0,
+                duration: 0.3,
+                onComplete: () => {
+                    tasks.splice(index, 1);
+                    saveTasks();
+                    renderTasks();
+                }
+            });
+        }
+
+        // Initial Load
+        window.onload = () => {
+            renderTasks();
+            gsap.from(".task-item", {
+                y: 20,
+                opacity: 0,
+                stagger: 0.1,
+                duration: 0.5,
+                ease: "power2.out"
+            });
+        };
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics Dashboard | EduFocus AI</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- GSAP -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #020617;
+            color: #f8fafc;
+        }
+
+        .glass-card {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: transform 0.3s ease, border-color 0.3s ease;
+        }
+
+        .glass-card:hover {
+            border-color: rgba(56, 189, 248, 0.3);
+            transform: translateY(-5px);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+
+        /* Gradient for chart backgrounds */
+        .cyan-glow {
+            filter: drop-shadow(0px 0px 10px rgba(56, 189, 248, 0.4));
+        }
+
+        .sidebar-indicator {
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 4px;
+            height: 24px;
+            background: #38bdf8;
+            border-radius: 0 4px 4px 0;
+        }
+    </style>
+</head>
+<body class="antialiased min-h-screen">
+
+    <!-- 🧭 Navigation (Consistent) -->
+    <nav class="w-full z-50 border-b border-white/5 bg-slate-950/50 backdrop-blur-md sticky top-0">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 bg-sky-500 rounded-lg flex items-center justify-center">
+                    <i data-lucide="brain-circuit" class="text-white w-5 h-5"></i>
+                </div>
+                <span class="text-xl font-bold tracking-tight">EduFocus</span>
+            </div>
+            
+            <div class="hidden md:flex items-center gap-8">
+                <a href="index.html" class="hover:text-sky-400 transition-colors">Home</a>
+                <a href="study.html" class="hover:text-sky-400 transition-colors">Study</a>
+                <a href="planner.html" class="hover:text-sky-400 transition-colors">Planner</a>
+                <a href="analytics.html" class="text-sky-400 font-semibold">Analytics</a>
+                <a href="profile.html" class="hover:text-sky-400 transition-colors">Profile</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-6 py-12">
+        
+        <!-- Dashboard Header -->
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-10">
+            <div>
+                <h1 class="text-4xl font-extrabold tracking-tight">Analytics 📈</h1>
+                <p class="text-slate-400">Deep insights into your study behavior.</p>
+            </div>
+            <div class="flex items-center gap-3 bg-slate-900/50 p-2 rounded-2xl border border-white/5">
+                <button class="px-4 py-2 bg-sky-500 text-slate-950 font-bold rounded-xl text-sm shadow-lg shadow-sky-500/20">Weekly</button>
+                <button class="px-4 py-2 text-slate-400 hover:text-white transition-colors text-sm">Monthly</button>
+            </div>
+        </div>
+
+        <!-- KPI Cards Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+            <!-- Focus Card -->
+            <div class="glass-card p-6 rounded-[2rem]">
+                <div class="flex justify-between items-start mb-4">
+                    <div class="p-3 bg-sky-500/10 rounded-2xl text-sky-400">
+                        <i data-lucide="zap" class="w-6 h-6"></i>
+                    </div>
+                    <span class="text-emerald-400 text-xs font-bold bg-emerald-400/10 px-2 py-1 rounded-lg flex items-center gap-1">
+                        <i data-lucide="trending-up" class="w-3 h-3"></i> +12%
+                    </span>
+                </div>
+                <p class="text-slate-500 text-xs font-bold uppercase tracking-widest">Avg Focus Score</p>
+                <h3 class="text-3xl font-black mt-1" id="kpi-focus">88%</h3>
+            </div>
+
+            <!-- Hours Card -->
+            <div class="glass-card p-6 rounded-[2rem]">
+                <div class="flex justify-between items-start mb-4">
+                    <div class="p-3 bg-indigo-500/10 rounded-2xl text-indigo-400">
+                        <i data-lucide="clock" class="w-6 h-6"></i>
+                    </div>
+                    <span class="text-emerald-400 text-xs font-bold bg-emerald-400/10 px-2 py-1 rounded-lg flex items-center gap-1">
+                        <i data-lucide="trending-up" class="w-3 h-3"></i> +2.4h
+                    </span>
+                </div>
+                <p class="text-slate-500 text-xs font-bold uppercase tracking-widest">Total Study Time</p>
+                <h3 class="text-3xl font-black mt-1" id="kpi-hours">14.2h</h3>
+            </div>
+
+            <!-- Posture Card -->
+            <div class="glass-card p-6 rounded-[2rem]">
+                <div class="flex justify-between items-start mb-4">
+                    <div class="p-3 bg-emerald-500/10 rounded-2xl text-emerald-400">
+                        <i data-lucide="accessibility" class="w-6 h-6"></i>
+                    </div>
+                    <span class="text-rose-400 text-xs font-bold bg-rose-400/10 px-2 py-1 rounded-lg flex items-center gap-1">
+                        <i data-lucide="trending-down" class="w-3 h-3"></i> -2%
+                    </span>
+                </div>
+                <p class="text-slate-500 text-xs font-bold uppercase tracking-widest">Posture Health</p>
+                <h3 class="text-3xl font-black mt-1" id="kpi-posture">76%</h3>
+            </div>
+
+            <!-- Distractions Card -->
+            <div class="glass-card p-6 rounded-[2rem]">
+                <div class="flex justify-between items-start mb-4">
+                    <div class="p-3 bg-rose-500/10 rounded-2xl text-rose-400">
+                        <i data-lucide="smartphone-off" class="w-6 h-6"></i>
+                    </div>
+                    <span class="text-emerald-400 text-xs font-bold bg-emerald-400/10 px-2 py-1 rounded-lg flex items-center gap-1">
+                        <i data-lucide="trending-up" class="w-3 h-3"></i> -15%
+                    </span>
+                </div>
+                <p class="text-slate-500 text-xs font-bold uppercase tracking-widest">Phone Distractions</p>
+                <h3 class="text-3xl font-black mt-1" id="kpi-dist">0.8 <span class="text-xs text-slate-500 font-normal">/day</span></h3>
+            </div>
+        </div>
+
+        <!-- Charts Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Focus Trend Line Chart -->
+            <div class="glass-card p-8 rounded-[2.5rem]">
+                <div class="flex justify-between items-center mb-8">
+                    <h4 class="text-lg font-bold flex items-center gap-2">
+                        <i data-lucide="line-chart" class="text-sky-400 w-5 h-5"></i> Focus Trend
+                    </h4>
+                </div>
+                <div class="chart-container">
+                    <canvas id="focusLineChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Study Hours Bar Chart -->
+            <div class="glass-card p-8 rounded-[2.5rem]">
+                <div class="flex justify-between items-center mb-8">
+                    <h4 class="text-lg font-bold flex items-center gap-2">
+                        <i data-lucide="bar-chart-3" class="text-indigo-400 w-5 h-5"></i> Session Density
+                    </h4>
+                </div>
+                <div class="chart-container">
+                    <canvas id="hoursBarChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Insights -->
+        <div class="mt-10 glass-card p-8 rounded-[2.5rem] border border-sky-500/20">
+            <h4 class="text-xl font-bold mb-4">AI Recommendation 🤖</h4>
+            <p class="text-slate-300 leading-relaxed max-w-4xl">
+                Your focus peaks between <span class="text-sky-400 font-bold">10:00 AM and 12:30 PM</span>. You tend to slouch more during afternoon sessions. We recommend a standing desk adjustment or a 5-minute stretching break every 45 minutes to maintain your posture score above 85%.
+            </p>
+        </div>
+
+    </main>
+
+    <script>
+        // Initialize Icons
+        lucide.createIcons();
+
+        // --- CHART SETTINGS & FAKE DATA ---
+        const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+        const focusData = [72, 85, 80, 92, 88, 95, 88];
+        const hoursData = [2.5, 4.0, 3.8, 5.2, 4.5, 6.0, 3.5];
+
+        // Global Chart Defaults for Dark Theme
+        Chart.defaults.color = '#64748b';
+        Chart.defaults.font.family = "'Plus Jakarta Sans', sans-serif";
+        Chart.defaults.font.size = 12;
+
+        // 📈 Focus Line Chart
+        const ctxLine = document.getElementById('focusLineChart').getContext('2d');
+        const focusGradient = ctxLine.createLinearGradient(0, 0, 0, 300);
+        focusGradient.addColorStop(0, 'rgba(56, 189, 248, 0.2)');
+        focusGradient.addColorStop(1, 'rgba(56, 189, 248, 0)');
+
+        new Chart(ctxLine, {
+            type: 'line',
+            data: {
+                labels: days,
+                datasets: [{
+                    label: 'Focus %',
+                    data: focusData,
+                    borderColor: '#38bdf8',
+                    borderWidth: 4,
+                    pointBackgroundColor: '#38bdf8',
+                    pointBorderColor: '#020617',
+                    pointBorderWidth: 2,
+                    pointRadius: 6,
+                    pointHoverRadius: 8,
+                    fill: true,
+                    backgroundColor: focusGradient,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { 
+                        beginAtZero: false, 
+                        min: 60,
+                        grid: { color: 'rgba(255,255,255,0.05)' },
+                        border: { display: false }
+                    },
+                    x: { 
+                        grid: { display: false },
+                        border: { display: false }
+                    }
+                }
+            }
+        });
+
+        // 📊 Hours Bar Chart
+        const ctxBar = document.getElementById('hoursBarChart').getContext('2d');
+        new Chart(ctxBar, {
+            type: 'bar',
+            data: {
+                labels: days,
+                datasets: [{
+                    label: 'Hours',
+                    data: hoursData,
+                    backgroundColor: '#6366f1',
+                    hoverBackgroundColor: '#818cf8',
+                    borderRadius: 12,
+                    borderSkipped: false,
+                    barThickness: 32
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { 
+                        grid: { color: 'rgba(255,255,255,0.05)' },
+                        border: { display: false }
+                    },
+                    x: { 
+                        grid: { display: false },
+                        border: { display: false }
+                    }
+                }
+            }
+        });
+
+        // --- GSAP ANIMATIONS ---
+        window.onload = () => {
+            gsap.from(".glass-card", {
+                y: 30,
+                opacity: 0,
+                duration: 0.8,
+                stagger: 0.1,
+                ease: "power3.out"
+            });
+
+            // Animate numbers
+            const animateValue = (id, start, end, duration, suffix = "") => {
+                let obj = { val: start };
+                gsap.to(obj, {
+                    val: end,
+                    duration: duration,
+                    onUpdate: () => {
+                        document.getElementById(id).innerText = obj.val.toFixed(id === 'kpi-hours' ? 1 : 0) + suffix;
+                    }
+                });
+            };
+
+            animateValue("kpi-focus", 0, 88, 1.5, "%");
+            animateValue("kpi-hours", 0, 14.2, 1.5, "h");
+            animateValue("kpi-posture", 0, 76, 1.5, "%");
+        };
+    </script>
+</body>
+</html>
